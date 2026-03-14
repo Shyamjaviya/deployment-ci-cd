@@ -80,6 +80,7 @@ Style/ClassAndModuleChildren:
 # Offense count: 4
 # Configuration parameters: AllowedConstants.
 Style/Documentation:
+  Enabled: false
   Exclude:
     - 'spec/**/*'
     - 'test/**/*'
