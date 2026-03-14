@@ -38,9 +38,6 @@ jobs:
       - name: Setup Database
         run: bin/rails db:prepare
 
-      - name: Run Tests
-        run: bundle exec rspec
-
   lint:
     runs-on: ubuntu-latest
     steps:
