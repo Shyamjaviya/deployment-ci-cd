@@ -26,18 +26,20 @@ jobs:
       RAILS_ENV: test
       DATABASE_URL: "postgres://shyam:shyam@localhost:5432/ci_cd_demo_test"
     steps:
-      - name: Create and load database schema 
-        uses: bin/rails db:schema:load
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Install Ruby and gems
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: 3.0
           bundler-cache: true
-      - name: Set up database schema
-        run: bin/rails db:schema:load
-      - name: Run tests
-        run: bin/rake
+      - name: Setup Database
+        run: bin/rails db:prepare
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ci_cd_demo_test
+      - name: Run Tests
+        run: bundle exec rspec
 
   lint:
     runs-on: ubuntu-latest
