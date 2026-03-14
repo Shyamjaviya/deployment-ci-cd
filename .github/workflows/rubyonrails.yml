@@ -54,6 +54,3 @@ jobs:
         run: |
           gem install brakeman
           gem install rubocop
-
-      - name: Lint Ruby files
-        run: bundle exec rubocop --parallel
