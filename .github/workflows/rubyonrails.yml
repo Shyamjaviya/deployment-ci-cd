@@ -1,73 +1,69 @@
+# This workflow uses actions that are not certified by GitHub.  They are
+# provided by a third-party and are governed by separate terms of service,
+# privacy policy, and support documentation.
+#
+# This workflow will install a prebuilt Ruby version, install dependencies, and
+# run tests and linters.
 name: "Ruby on Rails CI"
-
 on:
-push:
-branches: ["main"]
-pull_request:
-branches: ["main"]
-
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 jobs:
-test:
-runs-on: ubuntu-latest
-
-```
-services:
-  postgres:
-    image: postgres:14
-    ports:
-      - "5432:5432"
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_DB: ci_cd_demo_development
+          POSTGRES_USER: shyam
+          POSTGRES_PASSWORD: shyam
     env:
-      POSTGRES_DB: ci_cd_demo_test
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      RAILS_ENV: test
+      DATABASE_URL: "postgres://shyam:shyam@localhost:5432/ci_cd_demo_test"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.6
+          bundler-cache: true
+      - name: Setup Database
+        run: bin/rails db:prepare
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ci_cd_demo_test
+      - name: Run Tests
+        run: bundle exec rspec
 
-env:
-  RAILS_ENV: test
-  DATABASE_URL: postgres://postgres:postgres@localhost:5432/ci_cd_demo_test
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.6
+          bundler-cache: true
 
-  - name: Setup Ruby
-    uses: ruby/setup-ruby@v1
-    with:
-      ruby-version: 3.1.6
-      bundler-cache: true
+      - name: Install security tools
+        run: |
+          gem install bundler-audit
+          gem install brakeman
+          gem install rubocop
 
-  - name: Setup Database
-    run: bin/rails db:prepare
+      - name: Security audit dependencies
+        run: bundle exec bundle-audit --update
 
-  - name: Run Tests
-    run: bundle exec rspec
-```
+      - name: Security audit application code
+        run: bundle exec brakeman -q -w2
 
-lint:
-runs-on: ubuntu-latest
-
-```
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v4
-
-  - name: Setup Ruby
-    uses: ruby/setup-ruby@v1
-    with:
-      ruby-version: 3.1.6
-      bundler-cache: true
-
-  - name: Install security tools
-    run: |
-      gem install bundler-audit
-      gem install brakeman
-      gem install rubocop
-
-  - name: Security audit dependencies
-    run: bundle exec bundle-audit --update
-
-  - name: Security audit application code
-    run: bundle exec brakeman -q -w2
-
-  - name: Lint Ruby files
-    run: bundle exec rubocop --parallel
-```
+      - name: Lint Ruby files
+        run: bundle exec rubocop --parallel
